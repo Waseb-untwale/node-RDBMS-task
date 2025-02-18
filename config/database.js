@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
-  logging: console.log,
+  logging: console.log, // ✅ Logs SQL queries for debugging
   pool: {
     max: 5,
     min: 0,
@@ -11,9 +11,18 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
     idle: 10000,
   },
 });
-sequelize
-  .authenticate()
-  .then(() => console.log("Database connected..."))
-  .catch((err) => console.error("Error: " + err));
+
+const connectDB = async () => {
+  try {
+    console.log("Attempting to connect to PostgreSQL...");
+    await sequelize.authenticate();
+    console.log("✅ Database connection successful!");
+  } catch (error) {
+    console.error("❌ Database connection failed:", error);
+    process.exit(1); // ❗ Exit if DB fails
+  }
+};
+
+connectDB();
 
 module.exports = sequelize;

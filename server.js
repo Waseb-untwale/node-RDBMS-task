@@ -6,15 +6,20 @@ const categoryRoutes = require("./routes/categoryRoutes");
 const productRoutes = require("./routes/productRoutes");
 
 const app = express();
-
+const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
 process.on("uncaughtException", (err) => {
-  console.error("Uncaught Exception Shutting down...");
-  console.error(err.name, err.message);
+  console.error("Uncaught Exception. Server shutting down...", err);
   process.exit(1);
 });
+
+process.on("unhandledRejection", (err) => {
+  console.error("Unhandled Promise Rejection:", err);
+  process.exit(1); // ✅ Prevent undefined behavior
+});
+
 
 app.get("/", (req, res) => {
   res.status(200).json("Welcome, your app is working well");
@@ -33,21 +38,15 @@ app.use((err, req, res, next) => {
 });
 
 // For local development only
-if (process.env.NODE_ENV !== "production") {
-  const startServer = async () => {
-    try {
-      await syncDatabase();
-      app.listen(process.env.PORT || 3000, () => {
-        console.log(`Server running on port ${process.env.PORT || 3000}`);
-      });
-    } catch (error) {
-      console.error("Database sync failed", error);
-      process.exit(1);
-    }
-  };
+const startServer = async () => {
+  try {
+    await syncDatabase();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Database sync failed", error);
+  }
+};
 
-  startServer();
-}
-
-// This is important for Vercel
-module.exports = app;
+startServer(); // ✅ Always start server
